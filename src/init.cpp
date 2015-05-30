@@ -14,7 +14,7 @@
 #include "checkpoints.h"
 #include "activemasternode.h"
 #include "spork.h"
-#include "keepass.h"
+#include "smessage.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet.h"
@@ -104,6 +104,8 @@ void Shutdown()
     RenameThread("crave-shutoff");
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
+    SecureMsgShutdown();
+
 #ifdef ENABLE_WALLET
     ShutdownRPCMining();
     if (pwalletMain)
@@ -191,7 +193,7 @@ std::string HelpMessage()
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -tor=<ip:port>         " + _("Use proxy to reach tor hidden services (default: same as -proxy)") + "\n";
     strUsage += "  -dns                   " + _("Allow DNS lookups for -addnode, -seednode and -connect") + "\n";
-    strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 15714 or testnet: 25714)") + "\n";
+    strUsage += "  -port=<port>           " + _("Listen for connections on <port> (default: 50550 or testnet: 51550)") + "\n";
     strUsage += "  -maxconnections=<n>    " + _("Maintain at most <n> connections to peers (default: 125)") + "\n";
     strUsage += "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n";
     strUsage += "  -connect=<ip>          " + _("Connect only to the specified node(s)") + "\n";
@@ -295,6 +297,11 @@ strUsage += "\n" + _("Masternode options:") + "\n";
     strUsage += "\n" + _("InstantX options:") + "\n";
     strUsage += "  -enableinstantx=<n>    " + _("Enable instantx, show confirmations for locked transactions (bool, default: true)") + "\n";
     strUsage += "  -instantxdepth=<n>     " + _("Show N confirmations for a successfully locked transaction (0-9999, default: 1)") + "\n";
+    strUsage += _("Secure messaging options:") + "\n" +
+        "  -nosmsg                                  " + _("Disable secure messaging.") + "\n" +
+        "  -debugsmsg                               " + _("Log extra debug messages.") + "\n" +
+        "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
+
 
     return strUsage;
 }
@@ -370,7 +377,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
         uiInterface.ThreadSafeShowGeneratedI2PAddress(
-                    "Generated I2P address",
+                   "Generated I2P address",
                     generatedDest.pub,
                     generatedDest.priv,
                     I2PSession::GenerateB32AddressFromDestination(generatedDest.pub),
@@ -457,6 +464,16 @@ bool AppInit2(boost::thread_group& threadGroup)
     const vector<string>& categories = mapMultiArgs["-debug"];
     if (GetBoolArg("-nodebug", false) || find(categories.begin(), categories.end(), string("0")) != categories.end())
         fDebug = false;
+
+    if(fDebug)
+    {
+	fDebugSmsg = true;
+    } else
+    {
+        fDebugSmsg = GetBoolArg("-debugsmsg", false);
+    }
+    fNoSmsg = GetBoolArg("-nosmsg", false);
+
 
     // Check for -debugnet (deprecated)
     if (GetBoolArg("-debugnet", false))
@@ -604,7 +621,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
 
         // Initialize KeePass Integration
-        keePassInt.init();
+        //keePassInt.init();
     } // (!fDisableWallet)
 #endif // ENABLE_WALLET
     // ********************************************************* Step 6: network initialization
@@ -895,6 +912,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
+    // ********************************************************* Step 10.1: startup secure messaging
+    
+    SecureMsgStart(fNoSmsg, GetBoolArg("-smsgscanchain", false));
+
     // ********************************************************* Step 11: start node
 
     if (!CheckDiskSpace())
@@ -977,8 +998,8 @@ bool AppInit2(boost::thread_group& threadGroup)
        A note about convertability. Within Darksend pools, each denomination
        is convertable to another.
        For example:
-       1DRK+1000 == (.1DRK+100)*10
-       10DRK+10000 == (1DRK+1000)*10
+       1SKB+1000 == (.1SKB+100)*10
+       10SKB+10000 == (1SKB+1000)*10
     */
     darkSendDenominations.push_back( (100000      * COIN)+100000000 );    
     darkSendDenominations.push_back( (10000       * COIN)+10000000 );
@@ -1048,9 +1069,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-	BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+	BOOST_FOREACH(PAIRTYPE(std::string, CCraveNodeConfig) crave, pwalletMain->mapMyCraveNodes)
 	{
-	    uiInterface.NotifyAdrenalineNodeChanged(adrenaline.second);
+	    uiInterface.NotifyCraveNodeChanged(crave.second);
 	}
 
         // Add wallet transactions that aren't already in a block to mapTransactions

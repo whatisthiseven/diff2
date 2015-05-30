@@ -1,8 +1,8 @@
 TEMPLATE = app
 TARGET = crave-qt
-VERSION = 1.4.2.0
-INCLUDEPATH += src src/json src/qt
-QT += network
+VERSION = 1.0.0.0
+INCLUDEPATH += src src/json src/qt src/qt/plugins/mrichtexteditor
+QT += network printsupport
 DEFINES += ENABLE_WALLET
 DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_NATIVE_I2P
 CONFIG += no_include_pwd
@@ -13,10 +13,7 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0
 }
 
-linux {
-    SECP256K1_LIB_PATH = /usr/local/lib
-    SECP256K1_INCLUDE_PATH = /usr/local/include
-}
+
 
 # for boost 1.37, add -mt to the boost libraries
 # use: qmake BOOST_LIB_SUFFIX=-mt
@@ -128,13 +125,8 @@ QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) cl
     DEFINES += HAVE_BUILD_INFO
 }
 
-contains(DEFINES, USE_NATIVE_I2P) {
-    geni2pbuild.depends = FORCE
-    geni2pbuild.commands = cd $$PWD; /bin/sh share/inc_build_number.sh src/i2pbuild.h bitcoin-qt-build-number
-    geni2pbuild.target = src/i2pbuild.h
-    PRE_TARGETDEPS += src/i2pbuild.h
-    QMAKE_EXTRA_TARGETS += geni2pbuild
-}
+
+
 
 contains(USE_O3, 1) {
     message(Building O3 optimization flag)
@@ -190,6 +182,7 @@ HEADERS += src/qt/bitcoingui.h \
     src/irc.h \
     src/net.h \
     src/key.h \
+    src/eckey.h \
     src/db.h \
     src/txdb.h \
     src/txmempool.h \
@@ -248,7 +241,6 @@ HEADERS += src/qt/bitcoingui.h \
     src/qt/flowlayout.h \
     src/qt/darksendconfig.h \
     src/masternode.h \
-    src/keepass.h \
     src/darksend.h \
     src/instantx.h \
     src/activemasternode.h \
@@ -263,8 +255,19 @@ HEADERS += src/qt/bitcoingui.h \
     src/crypto/sha512.h \
     src/eccryptoverify.h \
     src/qt/masternodemanager.h \
-    src/qt/addeditadrenalinenode.h \
-    src/qt/adrenalinenodeconfigdialog.h
+    src/qt/addeditcravenode.h \
+    src/qt/cravenodeconfigdialog.h \
+    src/qt/richlist.h \
+    src/qt/qcustomplot.h \
+    src/richlistdata.h \
+    src/richlistdb.h \
+    src/smessage.h \
+    src/qt/messagepage.h \
+    src/qt/messagemodel.h \
+    src/qt/sendmessagesdialog.h \
+    src/qt/sendmessagesentry.h \
+    src/qt/plugins/mrichtexteditor/mrichtextedit.h \
+    src/qt/qvalidatedtextedit.h
 
 SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/transactiontablemodel.cpp \
@@ -287,6 +290,7 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/hash.cpp \
     src/netbase.cpp \
     src/key.cpp \
+    src/eckey.cpp \
     src/script.cpp \
     src/core.cpp \
     src/main.cpp \
@@ -347,7 +351,6 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/qt/flowlayout.cpp \
     src/qt/darksendconfig.cpp \
     src/masternode.cpp \
-    src/keepass.cpp \
     src/darksend.cpp \
     src/rpcdarksend.cpp \
     src/instantx.cpp \
@@ -363,8 +366,21 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/crypto/sha512.cpp \
     src/eccryptoverify.cpp \
     src/qt/masternodemanager.cpp \
-    src/qt/addeditadrenalinenode.cpp \
-    src/qt/adrenalinenodeconfigdialog.cpp
+    src/qt/addeditcravenode.cpp \
+    src/qt/cravenodeconfigdialog.cpp \
+    src/qt/richlist.cpp \
+    src/qt/qcustomplot.cpp \
+    src/richlistdb.cpp \
+    src/richlistdata.cpp \
+    src/smessage.cpp \
+    src/qt/messagepage.cpp \
+    src/qt/messagemodel.cpp \
+    src/qt/sendmessagesdialog.cpp \
+    src/qt/sendmessagesentry.cpp \
+    src/qt/qvalidatedtextedit.cpp \
+    src/qt/plugins/mrichtexteditor/mrichtextedit.cpp \
+    src/rpcsmessage.cpp
+
 
 RESOURCES += \
     src/qt/bitcoin.qrc
@@ -384,8 +400,14 @@ FORMS += \
     src/qt/forms/optionsdialog.ui \
     src/qt/forms/darksendconfig.ui \
     src/qt/forms/masternodemanager.ui \
-    src/qt/forms/addeditadrenalinenode.ui \
-    src/qt/forms/adrenalinenodeconfigdialog.ui \
+    src/qt/forms/addeditcravenode.ui \
+    src/qt/forms/cravenodeconfigdialog.ui \
+    src/qt/forms/richlist.ui \
+    src/qt/forms/messagepage.ui \
+    src/qt/forms/sendmessagesentry.ui \
+    src/qt/forms/sendmessagesdialog.ui \
+    src/qt/plugins/mrichtexteditor/mrichtextedit.ui 
+
 
 contains(DEFINES, USE_NATIVE_I2P) {
 HEADERS += src/i2p.h \
@@ -438,9 +460,10 @@ isEmpty(BOOST_LIB_SUFFIX) {
 }
 
 isEmpty(BOOST_THREAD_LIB_SUFFIX) {
-    win32:BOOST_THREAD_LIB_SUFFIX = _win32$$BOOST_LIB_SUFFIX
+    win32:BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
     else:BOOST_THREAD_LIB_SUFFIX = $$BOOST_LIB_SUFFIX
 }
+
 
 isEmpty(BDB_LIB_PATH) {
     macx:BDB_LIB_PATH = /opt/local/lib/db48

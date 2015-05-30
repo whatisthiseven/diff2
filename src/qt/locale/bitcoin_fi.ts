@@ -233,7 +233,7 @@ Tämä tuote sisältää OpenSSL-projektin kehittämää ohjelmistoa OpenSSL-ty�
     <message>
         <location line="+1"/>
         <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR COINS&lt;/b&gt;!</source>
-        <translation>Varoitus: Jos salaat lompakkosi ja hukkaat salasanasi, &lt;b&gt;MENETÄT KAIKKI CRAVEISI&lt;/b&gt;!</translation>
+        <translation>Varoitus: Jos salaat lompakkosi ja hukkaat salasanasi, &lt;b&gt;MENETÄT KAIKKI SKBISI&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -2763,8 +2763,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Crave Alert&quot; admin@foo.co
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>Kuuntele yhteyksiä portissa &lt;port&gt; (oletus: 15714 tai testiverkko: 25714)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 50550 or testnet: 51550)</source>
+        <translation>Kuuntele yhteyksiä portissa &lt;port&gt; (oletus: 50550 tai testiverkko: 51550)</translation>
     </message>
     <message>
         <location line="+1"/>

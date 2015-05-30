@@ -2772,8 +2772,8 @@ napríklad: alertnotify=echo %%s | mail -s &quot;Crave upozornenie&quot; admin@f
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>Počúvať pripojenia na &lt;port&gt; (predvolené: 15714 alebo testovacia sieť: 25714)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 50550 or testnet: 51550)</source>
+        <translation>Počúvať pripojenia na &lt;port&gt; (predvolené: 50550 alebo testovacia sieť: 51550)</translation>
     </message>
     <message>
         <location line="+1"/>

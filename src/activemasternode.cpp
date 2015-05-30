@@ -8,7 +8,7 @@
 #include "clientversion.h"
 
 //
-// Bootup the masternode, look for a 500 CRAVE input and register on the network
+// Bootup the masternode, look for a 1000 SKB input and register on the network
 //
 void CActiveMasternode::ManageStatus()
 {
@@ -44,16 +44,7 @@ void CActiveMasternode::ManageStatus()
 
         LogPrintf("CActiveMasternode::ManageStatus() - Checking inbound connection to '%s'\n", service.ToString().c_str());
 
-          // CRAVENOTE: There is no logical reason to restrict this to a specific port.  Its a peer, what difference does it make.
-          /*  if(service.GetPort() != 9999) {
-                notCapableReason = "Invalid port: " + boost::lexical_cast<string>(service.GetPort()) + " -only 9999 is supported on mainnet.";
-                status = MASTERNODE_NOT_CAPABLE;
-                LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason.c_str());
-                return;
-            }
-        */
-
-        
+                  
             if(!ConnectNode((CAddress)service, service.ToString().c_str())){
                 notCapableReason = "Could not connect to " + service.ToString();
                 status = MASTERNODE_NOT_CAPABLE;
@@ -431,12 +422,12 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode()
     vector<COutput> filteredCoins;
 
     // Retrieve all possible outputs
-    pwalletMain->AvailableCoins(vCoins);
+    pwalletMain->AvailableCoinsMN(vCoins);
 
     // Filter
     BOOST_FOREACH(const COutput& out, vCoins)
     {
-        if(out.tx->vout[out.i].nValue == 500*COIN) { //exactly
+        if(out.tx->vout[out.i].nValue == 1000*COIN) { //exactly
         	filteredCoins.push_back(out);
         }
     }
@@ -458,7 +449,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternodeForPubKey(std::string co
     // Filter
     BOOST_FOREACH(const COutput& out, vCoins)
     {
-        if(out.tx->vout[out.i].scriptPubKey == scriptPubKey && out.tx->vout[out.i].nValue == 500*COIN) { //exactly
+        if(out.tx->vout[out.i].scriptPubKey == scriptPubKey && out.tx->vout[out.i].nValue == 1000*COIN) { //exactly
         	filteredCoins.push_back(out);
         }
     }

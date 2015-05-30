@@ -21,6 +21,7 @@
 #include "darksend.h"
 #include "masternode.h"
 #include "spork.h"
+#include "smessage.h"
 
 using namespace std;
 using namespace boost;
@@ -43,9 +44,9 @@ CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 CBigNum bnProofOfStakeLimitV2(~uint256(0) >> 20);
 
 unsigned int nStakeMinAge = 8 * 60 * 60; // 8 hours
-unsigned int nModifierInterval = 8 * 60; // time to elapse before new modifier is computed
+unsigned int nModifierInterval = 7 * 60; // time to elapse before new modifier is computed
 
-int nCoinbaseMaturity = 188;
+int nCoinbaseMaturity = 50;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 
@@ -1138,14 +1139,14 @@ int64_t GetProofOfWorkReward(int64_t nFees)
 // miner's coin stake reward based on coin age spent (coin-days)
 int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees)
 {
-    int64_t nSubsidy = 1 * COIN; //nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    int64_t nSubsidy = 0.5 * COIN;
 
     LogPrint("creation", "GetProofOfStakeReward(): create=%s nCoinAge=%d\n", FormatMoney(nSubsidy), nCoinAge);
 
     return nSubsidy + nFees;
 }
 
-static int64_t nTargetTimespan = 24 * 60;  // 24 mins
+static int64_t nTargetTimespan = 10 * 60;  // 10 mins
 
 //
 // maximum nBits value could possible be required nTime after
@@ -1157,8 +1158,8 @@ unsigned int ComputeMaxBits(CBigNum bnTargetLimit, unsigned int nBase, int64_t n
     bnResult *= 2;
     while (nTime > 0 && bnResult < bnTargetLimit)
     {
-        // Maximum 200% adjustment per day...
-        bnResult *= 2;
+        // Maximum 400% adjustment per day...
+        bnResult *= 4;
         nTime -= 24 * 60 * 60;
     }
     if (bnResult > bnTargetLimit)
@@ -1196,10 +1197,7 @@ const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfSta
 int nTargetSpacing = 60;
 
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake)
-{
-    if(pindexLast->GetBlockTime() > STAKE_TIMESPAN_SWITCH_TIME)
-	nTargetTimespan = 2 * 60; // 2 minutes
-
+{   
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
     if (pindexLast == NULL)
@@ -1726,10 +1724,9 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     int64_t nValueIn = 0;
     int64_t nValueOut = 0;
     int64_t nStakeReward = 0;
-    unsigned int nSigOps = 0;
-    int nTxCacheHits = 0;
+    unsigned int nSigOps = 0;    
     int nInputs = 0;
-    int64_t nTimeStart = GetTimeMicros();
+    
     BOOST_FOREACH(CTransaction& tx, vtx)
     {
         uint256 hashTx = tx.GetHash();
@@ -1787,29 +1784,14 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             if (tx.IsCoinStake())
                 nStakeReward = nTxValueOut - nTxValueIn;
 
-	    //if(setValidatedTx.find(hashTx) == setValidatedTx.end())
-	    //{
-                if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, flags))
-                    return false;
-		//else
-		//    setValidatedTx.insert(hashTx);
-	    //}
-	    //else
-	    //{
-	//	++nTxCacheHits;
-	  //  }
+	    
+            if (!tx.ConnectInputs(txdb, mapInputs, mapQueuedChanges, posThisTx, pindex, true, false, flags))
+                return false;
         }
 
         mapQueuedChanges[hashTx] = CTxIndex(posThisTx, tx.vout.size());
     }
-
-    int64_t nTime1 = GetTimeMicros(); nTimeConnect += nTime1 - nTimeStart;
-    if(fDebug)
-    {
-	LogPrintf("bench      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)vtx.size(), 0.001 * (nTime1 - nTimeStart), 0.001 * (nTime1 - nTimeStart) / vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime1 - nTimeStart) / (nInputs-1), nTimeConnect * 0.000001);
-	LogPrintf("bench      - %u transaction validations cached\n", nTxCacheHits);
-    }
-
+    
     if (IsProofOfWork())
     {
         int64_t nReward = GetProofOfWorkReward(nFees);
@@ -2317,7 +2299,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
 
 // ----------- instantX transaction scanning -----------
 
-    if(IsSporkActive(SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT)){
+   
         BOOST_FOREACH(const CTransaction& tx, vtx){
             if (!tx.IsCoinBase()){
                 //only reject blocks when it's based on complete consensus
@@ -2331,9 +2313,7 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                 }
             }
         }
-    } else {
-        if(fDebug) { LogPrintf("CheckBlock() : skipping transaction locking checks\n"); }
-    }
+    
 
 
     // ----------- masternode payments -----------
@@ -2341,20 +2321,15 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
     bool MasternodePayments = false;
 
     if(nTime > START_MASTERNODE_PAYMENTS) MasternodePayments = true;
-
-    if(!IsSporkActive(SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT)){
-        MasternodePayments = false;
-        if(fDebug) LogPrintf("CheckBlock() : Masternode payment enforcement is off\n");
-    }
-
+   
     if(MasternodePayments)
     {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pindex = pindexBest;
-        if(pindex != NULL){
+        if(IsProofOfStake() && pindex != NULL){
             if(pindex->GetBlockHash() == hashPrevBlock){
-                CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[0].GetValueOut());
+                CAmount masternodePaymentAmount = GetMasternodePayment(pindex->nHeight+1, vtx[1].GetValueOut());
                 bool fIsInitialDownload = IsInitialBlockDownload();
 
                 // If we don't already have its previous block, skip masternode payment step
@@ -2372,12 +2347,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot, bool fCheckSig) c
                         if(fDebug) { LogPrintf("CheckBlock() : Using non-specific masternode payments %d\n", pindexBest->nHeight+1); }
                     }
 
-                    for (unsigned int i = 0; i < vtx[0].vout.size(); i++) {
-                        if(vtx[0].vout[i].nValue == masternodePaymentAmount )
+                    for (unsigned int i = 0; i < vtx[1].vout.size(); i++) {
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount )
                             foundPaymentAmount = true;
-                        if(vtx[0].vout[i].scriptPubKey == payee )
+                        if(vtx[1].vout[i].scriptPubKey == payee )
                             foundPayee = true;
-                        if(vtx[0].vout[i].nValue == masternodePaymentAmount && vtx[0].vout[i].scriptPubKey == payee)
+                        if(vtx[1].vout[i].nValue == masternodePaymentAmount && vtx[1].vout[i].scriptPubKey == payee)
                             foundPaymentAndPayee = true;
                     }
 
@@ -3804,6 +3779,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (ProcessBlock(pfrom, &block))
             mapAlreadyAskedFor.erase(inv);
         if (block.nDoS) pfrom->Misbehaving(block.nDoS);
+
+        if (fSecMsgEnabled)
+            SecureMsgScanBlock(block);
     }
 
 
@@ -3949,6 +3927,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
     else
     {
+        if (fSecMsgEnabled)
+            SecureMsgReceiveData(pfrom, strCommand, vRecv);
+
         ProcessMessageDarksend(pfrom, strCommand, vRecv);
         ProcessMessageMasternode(pfrom, strCommand, vRecv);
         ProcessMessageInstantX(pfrom, strCommand, vRecv);
@@ -4254,6 +4235,9 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         if (!vGetData.empty())
             pto->PushMessage("getdata", vGetData);
 
+        if (fSecMsgEnabled)
+            SecureMsgSendData(pto, fSendTrickle); // should be in cs_main?
+
     }
     return true;
 }
@@ -4262,7 +4246,7 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
 
 int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
-    int64_t ret = blockValue * 2/3; //67%
+    int64_t ret = blockValue * 3/3.75; //80%
 
     return ret;
 }

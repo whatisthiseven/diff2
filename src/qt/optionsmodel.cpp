@@ -7,7 +7,6 @@
 #include "guiutil.h"
 
 #include <QSettings>
-
 #ifdef USE_NATIVE_I2P
 #include "i2p.h"
 #include <sstream>
@@ -58,7 +57,6 @@ bool static ApplyProxySettings()
     SetNameProxy(addrProxy);
     return true;
 }
-
 #ifdef USE_NATIVE_I2P
 std::string& FormatI2POptionsString(
         std::string& options,
@@ -143,7 +141,6 @@ void OptionsModel::Init()
         SoftSetArg("-darksendrounds", settings.value("nDarksendRounds").toString().toStdString());
     if (settings.contains("nAnonymizeCraveAmount"))
         SoftSetArg("-anonymizecraveamount", settings.value("nAnonymizeCraveAmount").toString().toStdString());
-
 #ifdef USE_NATIVE_I2P
     ScopeGroupHelper s(settings, I2P_OPTIONS_SECTION_NAME);
 

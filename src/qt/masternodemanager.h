@@ -32,7 +32,7 @@ public:
 
 public slots:
     void updateNodeList();
-    void updateAdrenalineNode(QString alias, QString addr, QString privkey, QString collateral);
+    void updateCraveNode(QString alias, QString addr, QString privkey, QString collateral);
 
 signals:
 
@@ -41,7 +41,7 @@ private:
     Ui::MasternodeManager *ui;
     ClientModel *clientModel;
     WalletModel *walletModel;
-    CCriticalSection cs_adrenaline;
+    CCriticalSection cs_crave;
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 

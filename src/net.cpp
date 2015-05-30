@@ -35,7 +35,7 @@
 using namespace std;
 using namespace boost;
 
-static const int MAX_OUTBOUND_CONNECTIONS = 32;
+static const int MAX_OUTBOUND_CONNECTIONS = 64;
 
 bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOutbound = NULL, const char *strDest = NULL, bool fOneShot = false);
 
@@ -615,7 +615,7 @@ void AddIncomingConnection(SOCKET hSocket, const CAddress& addr)
         if (nErr != WSAEWOULDBLOCK)
             printf("socket error accept failed: %d\n", nErr);
     }
-    else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
+    else if (nInbound >= GetArg("-maxconnections", 25) - MAX_OUTBOUND_CONNECTIONS)
     {
         {
             LOCK(cs_setservAddNodeAddresses);
@@ -1853,7 +1853,7 @@ void StartNode(boost::thread_group& threadGroup)
 {
     if (semOutbound == NULL) {
         // initialize semaphore
-        int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, (int)GetArg("-maxconnections", 125));
+        int nMaxOutbound = min(MAX_OUTBOUND_CONNECTIONS, (int)GetArg("-maxconnections", 25));
         semOutbound = new CSemaphore(nMaxOutbound);
     }
 

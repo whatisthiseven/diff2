@@ -2,7 +2,6 @@
 #define OPTIONSDIALOG_H
 
 #include <QDialog>
-
 #ifdef USE_NATIVE_I2P
 #include "i2poptionswidget.h"
 #endif
@@ -13,7 +12,6 @@ class OptionsDialog;
 class OptionsModel;
 class MonitoredDataMapper;
 class QValidatedLineEdit;
-
 #ifdef USE_NATIVE_I2P
 class ClientModel;
 #endif
@@ -26,7 +24,6 @@ class OptionsDialog : public QDialog
 public:
     explicit OptionsDialog(QWidget *parent = 0);
     ~OptionsDialog();
-
 #ifdef USE_NATIVE_I2P
     void setClientModel(ClientModel* clientModel);
 #endif
@@ -51,7 +48,6 @@ private slots:
     void on_okButton_clicked();
     void on_cancelButton_clicked();
     void on_applyButton_clicked();
-
 #ifdef USE_NATIVE_I2P
     void showRestartWarning_I2P();
 #endif

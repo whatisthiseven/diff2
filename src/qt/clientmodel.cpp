@@ -13,7 +13,6 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QDebug>
-
 #ifdef USE_NATIVE_I2P
 #include "i2p.h"
 #endif
@@ -142,7 +141,6 @@ OptionsModel *ClientModel::getOptionsModel()
 {
     return optionsModel;
 }
-
 #ifdef USE_NATIVE_I2P
 QString ClientModel::formatI2PNativeFullVersion() const
 {
@@ -192,7 +190,6 @@ void ClientModel::generateI2PDestination(QString& pub, QString& priv) const
 }
 
 #endif
-
 QString ClientModel::formatFullVersion() const
 {
     return QString::fromStdString(FormatFullVersion());
@@ -224,7 +221,6 @@ static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConn
     QMetaObject::invokeMethod(clientmodel, "updateNumConnections", Qt::QueuedConnection,
                               Q_ARG(int, newNumConnections));
 }
-
 #ifdef USE_NATIVE_I2P
 static void NotifyNumI2PConnectionsChanged(ClientModel *clientmodel, int newNumI2PConnections)
 {

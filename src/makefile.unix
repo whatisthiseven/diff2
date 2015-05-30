@@ -111,6 +111,7 @@ OBJS= \
     obj/addrman.o \
     obj/crypter.o \
     obj/key.o \
+    obj/eckey.o \
     obj/init.o \
     obj/bitcoind.o \
     obj/keystore.o \
@@ -125,6 +126,7 @@ OBJS= \
     obj/rpcnet.o \
     obj/rpcblockchain.o \
     obj/rpcrawtransaction.o \
+    obj/rpcsmessage.o \
     obj/timedata.o \
     obj/script.o \
     obj/sync.o \
@@ -156,12 +158,15 @@ OBJS= \
     obj/crypto/ripemd160.o \
     obj/crypto/sha1.o \
     obj/crypto/sha256.o \
-    obj/crypto/sha512.o
-
+    obj/crypto/sha512.o \
+    obj/smessage.o \
+    obj/richlistdata.o \
+    obj/richlistdb.o
 ifdef USE_NATIVE_I2P
 	OBJS += obj/i2p.o
 	OBJS += obj/i2psam.o
 endif
+
 
 ifeq (${USE_WALLET}, 1)
     DEFS += -DENABLE_WALLET

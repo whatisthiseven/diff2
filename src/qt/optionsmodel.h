@@ -96,7 +96,6 @@ private:
     int i2pOutboundPriority;
     QString i2pOptions;
 #endif
-
 signals:
     void displayUnitChanged(int unit);
     void transactionFeeChanged(qint64);

@@ -58,7 +58,6 @@ public:
     QString getB32Address(const QString& destination) const;
     void generateI2PDestination(QString& pub, QString& priv) const;
 #endif
-
 private:
     OptionsModel *optionsModel;
 

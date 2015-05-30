@@ -1,4 +1,4 @@
-// Copyright (c) 2015 The CRAVE developers
+// Copyright (c) 2015 The SKB developers
 // Copyright (c) 2009-2012 The Darkcoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -26,7 +26,7 @@ using namespace boost;
 
 
 #define SPORK_1_MASTERNODE_PAYMENTS_ENFORCEMENT_DEFAULT       2428537599  //2015-4-8 23:59:59 GMT
-#define SPORK_2_MAX_VALUE_DEFAULT                             500        //500 CRAVE 
+#define SPORK_2_MAX_VALUE_DEFAULT                             1000        //1000 SKB 
 #define SPORK_3_REPLAY_BLOCKS_DEFAULT                         0
 #define SPORK_4_RECONVERGE_DEFAULT                            1420070400  //2047-1-1
 
@@ -96,8 +96,8 @@ private:
 public:
 
     CSporkManager() {
-        strMainPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
-        strTestPubKey = "04a983220ea7a38a7106385003fef77896538a382a0dcc389cc45f3c98751d9af423a097789757556259351198a8aaa628a1fd644c3232678c5845384c744ff8d7";
+        strMainPubKey = "0409dbdf73fa7ca2882bba70900408ac637c61bfee3401080ccf4e835d373dc132eadff01d3335a10669018a036ed650fc6e91cf14ebfd50f42231fb1bd439d0b0";
+        strTestPubKey = "0409dbdf73fa7ca2882bba70900408ac637c61bfee3401080ccf4e835d373dc132eadff01d3335a10669018a036ed650fc6e91cf14ebfd50f42231fb1bd439d0b0";
     }
 
     std::string GetSporkNameByID(int id);

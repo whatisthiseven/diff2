@@ -54,7 +54,7 @@ enum AvailableCoinsType
     ALL_COINS = 1,
     ONLY_DENOMINATED = 2,
     ONLY_NONDENOMINATED = 3,
-    ONLY_NONDENOMINATED_NOTMN = 4 // ONLY_NONDENOMINATED and not 1000 DRK at the same time
+    ONLY_NONDENOMINATED_NOTMN = 4 // ONLY_NONDENOMINATED and not 1000 SKB at the same time
 };
 
 /** IsMine() return codes */
@@ -150,8 +150,8 @@ public:
     MasterKeyMap mapMasterKeys;
     unsigned int nMasterKeyMaxID;
 
-    std::map<std::string, CAdrenalineNodeConfig> mapMyAdrenalineNodes;
-    bool AddAdrenalineNodeConfig(CAdrenalineNodeConfig nodeConfig);
+    std::map<std::string, CCraveNodeConfig> mapMyCraveNodes;
+    bool AddCraveNodeConfig(CCraveNodeConfig nodeConfig);
 
     CWallet()
     {
@@ -195,6 +195,7 @@ public:
 
     void AvailableCoinsForStaking(std::vector<COutput>& vCoins, unsigned int nSpendTime) const;
     void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl = NULL, AvailableCoinsType coin_type=ALL_COINS, bool useIX = false) const;
+    void AvailableCoinsMN(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl = NULL, AvailableCoinsType coin_type=ALL_COINS, bool useIX = false) const;
     bool SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
     bool SelectCoinsMinConfByCoinAge(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
 

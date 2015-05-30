@@ -17,6 +17,9 @@ class SignVerifyMessageDialog;
 class Notificator;
 class RPCConsole;
 class MasternodeManager;
+class RichListPage;
+class MessagePage;
+class MessageModel;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -47,6 +50,7 @@ public:
         functionality.
     */
     void setWalletModel(WalletModel *walletModel);
+    void setMessageModel(MessageModel *messageModel);
 
 protected:
     void changeEvent(QEvent *e);
@@ -57,6 +61,7 @@ protected:
 private:
     ClientModel *clientModel;
     WalletModel *walletModel;
+    MessageModel *messageModel;
 
     QToolBar *toolbar;
 
@@ -71,6 +76,8 @@ private:
     SendCoinsDialog *sendCoinsPage;
     SignVerifyMessageDialog *signVerifyMessageDialog;
     MasternodeManager *masternodeManagerPage;
+    RichListPage *richListPage;
+    MessagePage *messagePage;
 
     QLabel* netLabel;
     QLabel *labelEncryptionIcon;
@@ -84,7 +91,6 @@ private:
     QLabel* labelI2POnly;
     QLabel* labelI2PGenerated;
 #endif
-
     QMenuBar *appMenuBar;
     QAction *overviewAction;
     QAction *historyAction;
@@ -106,6 +112,8 @@ private:
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;
     QAction *masternodeManagerAction;
+    QAction *richListPageAction;
+    QAction *messageAction;
 
     QSystemTrayIcon *trayIcon;
     Notificator *notificator;
@@ -164,7 +172,6 @@ public slots:
 #ifdef USE_NATIVE_I2P
     void showGeneratedI2PAddr(const QString& caption, const QString& pub, const QString& priv, const QString& b32, const QString& configFileName);
 #endif  
-
 private slots:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
@@ -184,6 +191,9 @@ private slots:
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
 
+    void gotoRichListPage();
+    void gotoMessagePage();
+
     /** Show configuration dialog */
     void optionsClicked();
     /** Show about dialog */
@@ -197,6 +207,7 @@ private slots:
         The new items are those between start and end inclusive, under the given parent item.
     */
     void incomingTransaction(const QModelIndex & parent, int start, int end);
+    void incomingMessage(const QModelIndex & parent, int start, int end);
     /** Encrypt the wallet */
     void encryptWallet();
     /** Backup the wallet */

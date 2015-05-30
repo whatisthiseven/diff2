@@ -125,6 +125,7 @@ OverviewPage::OverviewPage(QWidget *parent) :
     ui->listTransactions->setIconSize(QSize(DECORATION_SIZE, DECORATION_SIZE));
     ui->listTransactions->setMinimumHeight(NUM_ITEMS * (DECORATION_SIZE + 2));
     ui->listTransactions->setAttribute(Qt::WA_MacShowFocusRect, false);
+    ui->listTransactions->setMinimumWidth(350);
 
     connect(ui->listTransactions, SIGNAL(clicked(QModelIndex)), this, SLOT(handleTransactionClicked(QModelIndex)));
 
@@ -142,7 +143,8 @@ OverviewPage::OverviewPage(QWidget *parent) :
 	qDebug() << "Dark Send Status Timer";
         timer = new QTimer(this);
         connect(timer, SIGNAL(timeout()), this, SLOT(darkSendStatus()));
-        timer->start(60000);
+	if(!GetBoolArg("-reindexaddr", false))
+            timer->start(60000);
     }
 
     if(fMasterNode || fLiteMode){

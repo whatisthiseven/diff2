@@ -2757,8 +2757,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Crave Alert&quot; admin@foo.co
     </message>
     <message>
         <location line="+6"/>
-        <source>Listen for connections on &lt;port&gt; (default: 15714 or testnet: 25714)</source>
-        <translation>&lt;port&gt; で 接続をリスン (デフォルト: 15714かtestnet は 25714)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 50550 or testnet: 51550)</source>
+        <translation>&lt;port&gt; で 接続をリスン (デフォルト: 50550かtestnet は 51550)</translation>
     </message>
     <message>
         <location line="+1"/>

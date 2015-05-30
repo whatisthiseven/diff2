@@ -60,7 +60,6 @@ struct CNodeSignals
 CNodeSignals& GetNodeSignals();
 
 typedef int NodeId;
-
 #ifdef USE_NATIVE_I2P
 bool BindListenNativeI2P();
 bool BindListenNativeI2P(SOCKET& hSocket);
@@ -192,6 +191,29 @@ public:
 };
 
 
+class SecMsgNode
+{
+public:
+    SecMsgNode()
+    {
+        lastSeen        = 0;
+        lastMatched     = 0;
+        ignoreUntil     = 0;
+        nWakeCounter    = 0;
+        nPeerId         = 0;
+        fEnabled        = false;
+    };
+    
+    ~SecMsgNode() {};
+    
+    int64_t                     lastSeen;
+    int64_t                     lastMatched;
+    int64_t                     ignoreUntil;
+    uint32_t                    nWakeCounter;
+    uint32_t                    nPeerId;
+    bool                        fEnabled;
+    
+};
 
 
 
@@ -273,6 +295,8 @@ public:
     CCriticalSection cs_inventory;
     std::multimap<int64_t, CInv> mapAskFor;
 
+    SecMsgNode smsgData;
+
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
     uint64_t nPingNonceSent;
@@ -282,8 +306,6 @@ public:
     int64_t nPingUsecTime;
     // Whether a ping is requested.
     bool fPingQueued;
-
-
 
     CNode(SOCKET hSocketIn, CAddress addrIn, std::string addrNameIn = "", bool fInboundIn=false) : ssSend(SER_NETWORK, INIT_PROTO_VERSION), setAddrKnown(5000)
 #ifdef USE_NATIVE_I2P

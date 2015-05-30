@@ -17,12 +17,12 @@
 
 class CValidationState;
 
-#define START_MASTERNODE_PAYMENTS_TESTNET 1428034047 //Fri, 09 Jan 2015 21:05:58 GMT
-#define START_MASTERNODE_PAYMENTS 1428537599 //Wed, 8 April 2015 23:59:59 GMT
+#define START_MASTERNODE_PAYMENTS_TESTNET 1429456427 
+#define START_MASTERNODE_PAYMENTS 1432080000 
 
-static const int64_t DARKSEND_COLLATERAL = (500*COIN);
-static const int64_t DARKSEND_FEE = (0.00925*COIN);
-static const int64_t DARKSEND_POOL_MAX = (4999.99*COIN);
+static const int64_t DARKSEND_COLLATERAL = (1000*COIN);
+static const int64_t DARKSEND_FEE = (0.001*COIN);
+static const int64_t DARKSEND_POOL_MAX = (10000.99*COIN);
 
 /*
     At 15 signatures, 1/2 of the masternode network can be owned by
@@ -42,7 +42,7 @@ static const int64_t DARKSEND_POOL_MAX = (4999.99*COIN);
 #define MASTERNODE_SYNC_IN_PROCESS             8
 #define MASTERNODE_REMOTELY_ENABLED            9
 
-#define MASTERNODE_MIN_CONFIRMATIONS           15
+#define MASTERNODE_MIN_CONFIRMATIONS           5
 #define MASTERNODE_MIN_DSEEP_SECONDS           (30*60)
 #define MASTERNODE_MIN_DSEE_SECONDS            (5*60)
 #define MASTERNODE_PING_SECONDS                (1*60)
@@ -59,7 +59,7 @@ class CReserveKey;
 class CWallet;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
-static const unsigned int MAX_BLOCK_SIZE = 40000000;
+static const unsigned int MAX_BLOCK_SIZE = 2000000;
 /** The maximum size for mined blocks */
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 /** The maximum size for transactions we're willing to relay/mine **/
@@ -81,7 +81,7 @@ static const int64_t MIN_TX_FEE = 1000;
 /** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
 /** No amount larger than this (in satoshi) is valid */
-static const int64_t MAX_MONEY = 2000000000 * COIN; // 1M PoW coins
+static const int64_t MAX_MONEY = 50000000 * COIN; // ~500K PoW coins
 inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 /** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
@@ -89,13 +89,11 @@ static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20
 inline bool IsProtocolV1RetargetingFixed(int nHeight) { return TestNet() || nHeight > 0; }
 inline bool IsProtocolV2(int nHeight) { return TestNet() || nHeight > 0; }
 
-inline int64_t FutureDriftV1(int64_t nTime) { return nTime + 10 * 60; }
-inline int64_t FutureDriftV2(int64_t nTime) { return nTime + 120; }
+inline int64_t FutureDriftV1(int64_t nTime) { return nTime + 5 * 60; }
+inline int64_t FutureDriftV2(int64_t nTime) { return nTime + 5 * 60; }
 inline int64_t FutureDrift(int64_t nTime, int nHeight) { return IsProtocolV2(nHeight) ? FutureDriftV2(nTime) : FutureDriftV1(nTime); }
 
-inline unsigned int GetTargetSpacing(int nHeight) { return IsProtocolV2(nHeight) ? 64 : 60; }
-
-static const int64_t STAKE_TIMESPAN_SWITCH_TIME = 1428537599;
+inline unsigned int GetTargetSpacing(int nHeight) { return IsProtocolV2(nHeight) ? 60 : 60; }
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -705,7 +703,8 @@ public:
 
     uint256 GetPoWHash() const
     {
-        return scrypt_blockhash(CVOIDBEGIN(nVersion));
+        //return scrypt_blockhash(CVOIDBEGIN(nVersion));
+	return Hash(BEGIN(nVersion), END(nNonce));
     }
 
     int64_t GetBlockTime() const

@@ -1,4 +1,4 @@
-#!/bin/bash
+
 # Copyright (c) 2013 giv
 
 if [ $# -lt 2 ]; then

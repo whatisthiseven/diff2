@@ -10,7 +10,6 @@
 #include <QIntValidator>
 #include <QLocale>
 #include <QMessageBox>
-
 #ifdef USE_NATIVE_I2P
 #include "clientmodel.h"
 #endif
@@ -124,11 +123,9 @@ void OptionsDialog::setModel(OptionsModel *model)
 #ifdef USE_NATIVE_I2P
     QObject::connect(tabI2P, SIGNAL(settingsChanged()), this, SLOT(showRestartWarning_I2P()));
 #endif
-
     /* disable apply button after settings are loaded as there is nothing to save */
     disableApplyButton();
 }
-
 #ifdef USE_NATIVE_I2P
 void OptionsDialog::setClientModel(ClientModel* clientModel)
 {
@@ -233,7 +230,6 @@ void OptionsDialog::showRestartWarning_Lang()
         fRestartWarningDisplayed_Lang = true;
     }
 }
-
 #ifdef USE_NATIVE_I2P
 void OptionsDialog::showRestartWarning_I2P()
 {

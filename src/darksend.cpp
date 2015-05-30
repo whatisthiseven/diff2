@@ -770,7 +770,7 @@ void CDarkSendPool::ChargeRandomFees(){
                 with using it to stop abuse. Otherwise it could serve as an attack vector and
                 allow endless transaction that would bloat Crave and make it unusable. To
                 stop these kinds of attacks 1 in 50 successful transactions are charged. This
-                adds up to a cost of 0.002DRK per transaction on average.
+                adds up to a cost of 0.002SKB per transaction on average.
             */
             if(r <= 20)
             {
@@ -1464,7 +1464,7 @@ bool CDarkSendPool::DoAutomaticDenominating(bool fDryRun, bool ready)
         if(sessionTotalValue > nBalanceNeedsAnonymized) sessionTotalValue = nBalanceNeedsAnonymized;
 
         double fCraveSubmitted = (sessionTotalValue / CENT);
-        LogPrintf("Submitting Darksend for %f DRK CENT - sessionTotalValue %d\n", fCraveSubmitted, sessionTotalValue);
+        LogPrintf("Submitting Darksend for %f SKB CENT - sessionTotalValue %d\n", fCraveSubmitted, sessionTotalValue);
 
         if(pwalletMain->GetDenominatedBalance(true, true) > 0){ //get denominated unconfirmed inputs
             LogPrintf("DoAutomaticDenominating -- Found unconfirmed denominated outputs, will wait till they confirm to continue.\n");
@@ -1851,10 +1851,10 @@ bool CDarkSendPool::IsCompatibleWithSession(int64_t nDenom, CTransaction txColla
 void CDarkSendPool::GetDenominationsToString(int nDenom, std::string& strDenom){
     // Function returns as follows:
     //
-    // bit 0 - 100DRK+1 ( bit on if present )
-    // bit 1 - 10DRK+1
-    // bit 2 - 1DRK+1
-    // bit 3 - .1DRK+1
+    // bit 0 - 100SKB+1 ( bit on if present )
+    // bit 1 - 10SKB+1
+    // bit 2 - 1SKB+1
+    // bit 3 - .1SKB+1
     // bit 3 - non-denom
 
 
@@ -1910,10 +1910,10 @@ int CDarkSendPool::GetDenominations(const std::vector<CTxOut>& vout){
 
     // Function returns as follows:
     //
-    // bit 0 - 100DRK+1 ( bit on if present )
-    // bit 1 - 10DRK+1
-    // bit 2 - 1DRK+1
-    // bit 3 - .1DRK+1
+    // bit 0 - 100SKB+1 ( bit on if present )
+    // bit 1 - 10SKB+1
+    // bit 2 - 1SKB+1
+    // bit 3 - .1SKB+1
 
     return denom;
 }
@@ -1985,7 +1985,7 @@ bool CDarkSendSigner::IsVinAssociatedWithPubkey(CTxIn& vin, CPubKey& pubkey){
     //if(GetTransaction(vin.prevout.hash, txVin, hash, true)){
     if(GetTransaction(vin.prevout.hash, txVin, hash)){
         BOOST_FOREACH(CTxOut out, txVin.vout){
-            if(out.nValue == 500*COIN){
+            if(out.nValue == 1000*COIN){
                 if(out.scriptPubKey == payee2) return true;
             }
         }
@@ -2117,7 +2117,7 @@ void ThreadCheckDarkSendPool()
     {
         c++;
 
-        MilliSleep(1000);
+        MilliSleep(5000);
         //LogPrintf("ThreadCheckDarkSendPool::check timeout\n");
         darkSendPool.CheckTimeout();
 
@@ -2128,7 +2128,9 @@ void ThreadCheckDarkSendPool()
                 is modifying the coins view without a mempool lock. It causes
                 segfaults from this code without the cs_main lock.
             */
+	    {
 
+	    LOCK(cs_masternodes);
             vector<CMasterNode>::iterator it = vecMasternodes.begin();
             //check them separately
             while(it != vecMasternodes.end()){
@@ -2147,12 +2149,14 @@ void ThreadCheckDarkSendPool()
                 }
             }
 
+	    }
+
             masternodePayments.CleanPaymentList();
             CleanTransactionLocksList();
         }
 
         //try to sync the masternode list and payment list every 5 seconds from at least 3 nodes
-        if(c % 5 == 0 && RequestedMasterNodeList < 3){
+        if(c % (5*5) == 0 && RequestedMasterNodeList < 3){
             bool fIsInitialDownload = IsInitialBlockDownload();
             if(!fIsInitialDownload) {
                 LOCK(cs_vNodes);
@@ -2179,14 +2183,14 @@ void ThreadCheckDarkSendPool()
             activeMasternode.ManageStatus();
         }
 
-        if(c % 60 == 0){
+        if(c % (60*5) == 0){
             //if we've used 1/5 of the masternode list, then clear the list.
             if((int)vecMasternodesUsed.size() > (int)vecMasternodes.size() / 5)
                 vecMasternodesUsed.clear();
         }
 
         //auto denom every 2.5 minutes (liquidity provides try less often)
-        if(c % 60*(nLiquidityProvider+1) == 0){
+        if(c % (60*5)*(nLiquidityProvider+1) == 0){
             if(nLiquidityProvider!=0){
                 int nRand = rand() % (101+nLiquidityProvider);
                 //about 1/100 chance of starting over after 4 rounds.

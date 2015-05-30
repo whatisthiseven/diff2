@@ -9,6 +9,7 @@
 #include "walletdb.h" // for BackupWallet
 #include "base58.h"
 #include "spork.h"
+#include "smessage.h"
 
 #include <QSet>
 #include <QTimer>
@@ -352,7 +353,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
 	std::string strFailReason;
 
         /*if(recipients[0].useInstantX && total > GetSporkValue(SPORK_2_MAX_VALUE)*COIN){
-            emit message(tr("Send Coins"), tr("InstantX doesn't support sending values that high yet. Transactions are currently limited to %n CRAVE.", "", GetSporkValue(SPORK_2_MAX_VALUE)),true,
+            emit message(tr("Send Coins"), tr("InstantX doesn't support sending values that high yet. Transactions are currently limited to %n SKB.", "", GetSporkValue(SPORK_2_MAX_VALUE)),true,
                          CClientUIInterface::MSG_ERROR);
             return TransactionCreationFailed;
         }*/

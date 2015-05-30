@@ -76,21 +76,21 @@ bool CWalletDB::ReadStealthAddress(CStealthAddress& sxAddr)
     return Read(std::make_pair(std::string("sxAddr"), sxAddr.scan_pubkey), sxAddr);
 }
 
-bool CWalletDB::WriteAdrenalineNodeConfig(std::string sAlias, const CAdrenalineNodeConfig& nodeConfig)
+bool CWalletDB::WriteCraveNodeConfig(std::string sAlias, const CCraveNodeConfig& nodeConfig)
 {
     nWalletDBUpdated++;
-    return Write(std::make_pair(std::string("adrenaline"), sAlias), nodeConfig, true);
+    return Write(std::make_pair(std::string("crave"), sAlias), nodeConfig, true);
 }
 
-bool CWalletDB::ReadAdrenalineNodeConfig(std::string sAlias, CAdrenalineNodeConfig& nodeConfig)
+bool CWalletDB::ReadCraveNodeConfig(std::string sAlias, CCraveNodeConfig& nodeConfig)
 {
-    return Read(std::make_pair(std::string("adrenaline"), sAlias), nodeConfig);
+    return Read(std::make_pair(std::string("crave"), sAlias), nodeConfig);
 }
 
-bool CWalletDB::EraseAdrenalineNodeConfig(std::string sAlias)
+bool CWalletDB::EraseCraveNodeConfig(std::string sAlias)
 {
     nWalletDBUpdated++;
-    return Erase(std::make_pair(std::string("adrenaline"), sAlias));
+    return Erase(std::make_pair(std::string("crave"), sAlias));
 }
 
 bool CWalletDB::WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata& keyMeta)
@@ -609,13 +609,13 @@ ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,
         {
             ssValue >> pwallet->nOrderPosNext;
         }
-        else if (strType == "adrenaline")
+        else if (strType == "crave")
 	{
 	    std::string sAlias;
 	    ssKey >> sAlias;
-	    CAdrenalineNodeConfig adrenalineNodeConfig;
-	    ssValue >> adrenalineNodeConfig;
-	    pwallet->mapMyAdrenalineNodes.insert(make_pair(sAlias, adrenalineNodeConfig));
+	    CCraveNodeConfig craveNodeConfig;
+	    ssValue >> craveNodeConfig;
+	    pwallet->mapMyCraveNodes.insert(make_pair(sAlias, craveNodeConfig));
 	}
     } catch (...)
     {

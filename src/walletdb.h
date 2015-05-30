@@ -90,7 +90,7 @@ public:
 
 };
 
-class CAdrenalineNodeConfig
+class CCraveNodeConfig
 {
 public:
     int nVersion;
@@ -99,7 +99,7 @@ public:
     std::string sCollateralAddress;
     std::string sMasternodePrivKey;
 
-    CAdrenalineNodeConfig()
+    CCraveNodeConfig()
     {
 	nVersion = 0;
     }
@@ -137,9 +137,9 @@ public:
     bool WriteStealthAddress(const CStealthAddress& sxAddr);    
     bool ReadStealthAddress(CStealthAddress& sxAddr);
 
-    bool WriteAdrenalineNodeConfig(std::string sAlias, const CAdrenalineNodeConfig& nodeConfig);
-    bool ReadAdrenalineNodeConfig(std::string sAlias, CAdrenalineNodeConfig& nodeConfig);
-    bool EraseAdrenalineNodeConfig(std::string sAlias);
+    bool WriteCraveNodeConfig(std::string sAlias, const CCraveNodeConfig& nodeConfig);
+    bool ReadCraveNodeConfig(std::string sAlias, CCraveNodeConfig& nodeConfig);
+    bool EraseCraveNodeConfig(std::string sAlias);
 
     bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
     bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta);

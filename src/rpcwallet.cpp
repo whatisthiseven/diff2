@@ -12,7 +12,8 @@
 #include "util.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "keepass.h"
+#include "richlistdata.h"
+#include "richlistdb.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -1936,55 +1937,100 @@ Value scanforstealthtxns(const Array& params, bool fHelp)
     return result;
 }
 
-Value keepass(const Array& params, bool fHelp) {
-    string strCommand;
 
-    if (params.size() >= 1)
-        strCommand = params[0].get_str();
-
-    if (fHelp  ||
-        (strCommand != "genkey" && strCommand != "init" && strCommand != "setpassphrase"))
+Value resetrichlist(const Array& params, bool fHelp) {
+    if (fHelp)
         throw runtime_error(
-            "keepass <genkey|init|setpassphrase>\n");
+            "resetrichlist\n"
+	    "Clears the existing data in the rich list.\n");
 
-    if (strCommand == "genkey")
+    CRichListData richListData;
+    bool fResult = ReadRichList(richListData);
+    if(fResult)
     {
-        SecureString result;
-        // Generate RSA key
-        //std::string keePassKey = CKeePassIntegrator::generateKey();
-        //return keePassKey;
-        SecureString sKey = CKeePassIntegrator::generateKeePassKey();
-        result = "Generated Key: ";
-        result += sKey;
-        return result.c_str();
+	richListData.mapRichList.clear();
+	richListData.nLastHeight = 0;
+        fResult = WriteRichList(richListData);
     }
-    else if(strCommand == "init")
+
+    Object result;
+    result.push_back(Pair("result", fResult));
+    return result;
+}
+
+Value updaterichlist(const Array& params, bool fHelp) {
+    if (fHelp)
+        throw runtime_error(
+            "updaterichlist\n"
+	    "Scans the blockchain from the last processed block\n"
+	    "and updates the rich list index.\n"
+	    "NOTE: This can take a long time if starting from\n"
+	    "an empty index or on first run.\n");
+
+    bool fResult = UpdateRichList();
+    Object result;
+    result.push_back(Pair("result", fResult));
+    return result;
+}
+
+
+Value getrichlist(const Array& params, bool fHelp) {
+    if (params.size() > 1 || fHelp)
+        throw runtime_error(
+            "getrichlist <count>\n"
+	    "<count> Optional number of addresses to return (default: 100)\n"
+	    "Returns the rich list, the list of all known addresses\n"
+	    "and their balances sorted in descending order.\n");
+
+    int nMaxCount = 100;
+    if (params.size() >= 1)
+        nMaxCount = params[0].get_int();
+
+    CRichListData richListData;
+    bool fResult = LoadRichList(richListData);
+    Object result;
+    if(!fResult)
     {
-        // Generate base64 encoded 256 bit RSA key and associate with KeePassHttp
-        SecureString result;
-        SecureString sKey;
-        std::string sId;
-        std::string sErrorMessage;
-        keePassInt.rpcAssociate(sId, sKey);
-        result = "Association successful. Id: ";
-        result += sId.c_str();
-        result += " - Key: ";
-        result += sKey.c_str();
-        return result.c_str();
+	result.push_back(Pair("result", "Could not load rich list."));
     }
-    else if(strCommand == "setpassphrase")
+    else
     {
-        if(params.size() != 2) {
-            return "setlogin: invalid number of parameters. Requires a passphrase";
+	std::set<CRichListDataItem> setRichList;
+	BOOST_FOREACH(const PAIRTYPE(std::string, CRichListDataItem)& p, richListData.mapRichList)
+        {
+	    setRichList.insert(p.second);
         }
 
-        SecureString sPassphrase = SecureString(params[1].get_str().c_str());
-
-        keePassInt.updatePassphrase(sPassphrase);
-
-        return "setlogin: Updated credentials.";
+	int n = 0;
+	BOOST_REVERSE_FOREACH(CRichListDataItem p, setRichList)
+	{
+	    n++;
+	    if(n > nMaxCount)
+		break;
+	
+	    result.push_back(Pair(p.sAddress, ValueFromAmount(p.nBalance)));
+	}
     }
+    return result;
+}
 
-    return "Invalid command";
+Value getrichliststats(const Array& params, bool fHelp) {
+    if (fHelp)
+        throw runtime_error(
+            "getrichliststats\n"
+	    "Returns stats about the rich list\n");
 
+    CRichListData richListData;
+    bool fResult = LoadRichList(richListData);
+    Object result;
+    if(!fResult)
+    {
+	result.push_back(Pair("result", "Could not load rich list."));
+    }
+    else
+    {
+	result.push_back(Pair("count", richListData.mapRichList.size()));
+	result.push_back(Pair("blockheight", richListData.nLastHeight));
+    }
+    return result;
 }

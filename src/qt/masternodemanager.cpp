@@ -1,7 +1,7 @@
 #include "masternodemanager.h"
 #include "ui_masternodemanager.h"
-#include "addeditadrenalinenode.h"
-#include "adrenalinenodeconfigdialog.h"
+#include "addeditcravenode.h"
+#include "cravenodeconfigdialog.h"
 
 #include "sync.h"
 #include "clientmodel.h"
@@ -45,13 +45,10 @@ MasternodeManager::MasternodeManager(QWidget *parent) :
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateNodeList()));
-    timer->start(30000);
+    if(!GetBoolArg("-reindexaddr", false))
+        timer->start(30000);
 
-    LOCK(cs_adrenaline);
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
-    {
-        updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
-    }
+    
 
     updateNodeList();
 }
@@ -61,7 +58,7 @@ MasternodeManager::~MasternodeManager()
     delete ui;
 }
 
-static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNodeConfig nodeConfig)
+static void NotifyCraveNodeUpdated(MasternodeManager *page, CCraveNodeConfig nodeConfig)
 {
     // alias, address, privkey, collateral address
     QString alias = QString::fromStdString(nodeConfig.sAlias);
@@ -69,7 +66,7 @@ static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNode
     QString privkey = QString::fromStdString(nodeConfig.sMasternodePrivKey);
     QString collateral = QString::fromStdString(nodeConfig.sCollateralAddress);
     
-    QMetaObject::invokeMethod(page, "updateAdrenalineNode", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(page, "updateCraveNode", Qt::QueuedConnection,
                               Q_ARG(QString, alias),
                               Q_ARG(QString, addr),
                               Q_ARG(QString, privkey),
@@ -80,13 +77,13 @@ static void NotifyAdrenalineNodeUpdated(MasternodeManager *page, CAdrenalineNode
 void MasternodeManager::subscribeToCoreSignals()
 {
     // Connect signals to core
-    uiInterface.NotifyAdrenalineNodeChanged.connect(boost::bind(&NotifyAdrenalineNodeUpdated, this, _1));
+    uiInterface.NotifyCraveNodeChanged.connect(boost::bind(&NotifyCraveNodeUpdated, this, _1));
 }
 
 void MasternodeManager::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from core
-    uiInterface.NotifyAdrenalineNodeChanged.disconnect(boost::bind(&NotifyAdrenalineNodeUpdated, this, _1));
+    uiInterface.NotifyCraveNodeChanged.disconnect(boost::bind(&NotifyCraveNodeUpdated, this, _1));
 }
 
 void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
@@ -101,9 +98,9 @@ void MasternodeManager::on_tableWidget_2_itemSelectionChanged()
     }
 }
 
-void MasternodeManager::updateAdrenalineNode(QString alias, QString addr, QString privkey, QString collateral)
+void MasternodeManager::updateCraveNode(QString alias, QString addr, QString privkey, QString collateral)
 {
-    LOCK(cs_adrenaline);
+    LOCK(cs_crave);
     bool bFound = false;
     int nodeRow = 0;
     for(int i=0; i < ui->tableWidget_2->rowCount(); i++)
@@ -184,6 +181,15 @@ void MasternodeManager::updateNodeList()
     }
 
     ui->countLabel->setText(QString::number(ui->tableWidget->rowCount()));
+
+    if(pwalletMain)
+    {
+        LOCK(cs_crave);
+        BOOST_FOREACH(PAIRTYPE(std::string, CCraveNodeConfig) crave, pwalletMain->mapMyCraveNodes)
+        {
+            updateCraveNode(QString::fromStdString(crave.second.sAlias), QString::fromStdString(crave.second.sAddress), QString::fromStdString(crave.second.sMasternodePrivKey), QString::fromStdString(crave.second.sCollateralAddress));
+        }
+    }
 }
 
 
@@ -206,7 +212,7 @@ void MasternodeManager::setWalletModel(WalletModel *model)
 
 void MasternodeManager::on_createButton_clicked()
 {
-    AddEditAdrenalineNode* aenode = new AddEditAdrenalineNode();
+    AddEditCraveNode* aenode = new AddEditCraveNode();
     aenode->exec();
 }
 
@@ -249,9 +255,9 @@ void MasternodeManager::on_getConfigButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CCraveNodeConfig c = pwalletMain->mapMyCraveNodes[sAddress];
     std::string sPrivKey = c.sMasternodePrivKey;
-    AdrenalineNodeConfigDialog* d = new AdrenalineNodeConfigDialog(this, QString::fromStdString(sAddress), QString::fromStdString(sPrivKey));
+    CraveNodeConfigDialog* d = new CraveNodeConfigDialog(this, QString::fromStdString(sAddress), QString::fromStdString(sPrivKey));
     d->exec();
 }
 
@@ -263,22 +269,22 @@ void MasternodeManager::on_removeButton_clicked()
         return;
 
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(this, "Delete Adrenaline Node?", "Are you sure you want to delete this adrenaline node configuration?", QMessageBox::Yes|QMessageBox::No);
+    confirm = QMessageBox::question(this, "Delete Crave Node?", "Are you sure you want to delete this crave node configuration?", QMessageBox::Yes|QMessageBox::No);
 
     if(confirm == QMessageBox::Yes)
     {
         QModelIndex index = selected.at(0);
         int r = index.row();
         std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-        CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+        CCraveNodeConfig c = pwalletMain->mapMyCraveNodes[sAddress];
         CWalletDB walletdb(pwalletMain->strWalletFile);
-        pwalletMain->mapMyAdrenalineNodes.erase(sAddress);
-        walletdb.EraseAdrenalineNodeConfig(c.sAddress);
+        pwalletMain->mapMyCraveNodes.erase(sAddress);
+        walletdb.EraseCraveNodeConfig(c.sAddress);
         ui->tableWidget_2->clearContents();
         ui->tableWidget_2->setRowCount(0);
-        BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+        BOOST_FOREACH(PAIRTYPE(std::string, CCraveNodeConfig) crave, pwalletMain->mapMyCraveNodes)
         {
-            updateAdrenalineNode(QString::fromStdString(adrenaline.second.sAlias), QString::fromStdString(adrenaline.second.sAddress), QString::fromStdString(adrenaline.second.sMasternodePrivKey), QString::fromStdString(adrenaline.second.sCollateralAddress));
+            updateCraveNode(QString::fromStdString(crave.second.sAlias), QString::fromStdString(crave.second.sAddress), QString::fromStdString(crave.second.sMasternodePrivKey), QString::fromStdString(crave.second.sCollateralAddress));
         }
     }
 }
@@ -294,14 +300,14 @@ void MasternodeManager::on_startButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CCraveNodeConfig c = pwalletMain->mapMyCraveNodes[sAddress];
 
     std::string errorMessage;
     bool result = activeMasternode.RegisterByPubKey(c.sAddress, c.sMasternodePrivKey, c.sCollateralAddress, errorMessage);
 
     QMessageBox msg;
     if(result)
-        msg.setText("Adrenaline Node at " + QString::fromStdString(c.sAddress) + " started.");
+        msg.setText("Crave Node at " + QString::fromStdString(c.sAddress) + " started.");
     else
         msg.setText("Error: " + QString::fromStdString(errorMessage));
 
@@ -319,14 +325,14 @@ void MasternodeManager::on_stopButton_clicked()
     QModelIndex index = selected.at(0);
     int r = index.row();
     std::string sAddress = ui->tableWidget_2->item(r, 1)->text().toStdString();
-    CAdrenalineNodeConfig c = pwalletMain->mapMyAdrenalineNodes[sAddress];
+    CCraveNodeConfig c = pwalletMain->mapMyCraveNodes[sAddress];
 
     std::string errorMessage;
     bool result = activeMasternode.StopMasterNode(c.sAddress, c.sMasternodePrivKey, errorMessage);
     QMessageBox msg;
     if(result)
     {
-        msg.setText("Adrenaline Node at " + QString::fromStdString(c.sAddress) + " stopped.");
+        msg.setText("Crave Node at " + QString::fromStdString(c.sAddress) + " stopped.");
     }
     else
     {
@@ -338,9 +344,9 @@ void MasternodeManager::on_stopButton_clicked()
 void MasternodeManager::on_startAllButton_clicked()
 {
     std::string results;
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CCraveNodeConfig) crave, pwalletMain->mapMyCraveNodes)
     {
-        CAdrenalineNodeConfig c = adrenaline.second;
+        CCraveNodeConfig c = crave.second;
 	std::string errorMessage;
         bool result = activeMasternode.RegisterByPubKey(c.sAddress, c.sMasternodePrivKey, c.sCollateralAddress, errorMessage);
 	if(result)
@@ -361,9 +367,9 @@ void MasternodeManager::on_startAllButton_clicked()
 void MasternodeManager::on_stopAllButton_clicked()
 {
     std::string results;
-    BOOST_FOREACH(PAIRTYPE(std::string, CAdrenalineNodeConfig) adrenaline, pwalletMain->mapMyAdrenalineNodes)
+    BOOST_FOREACH(PAIRTYPE(std::string, CCraveNodeConfig) crave, pwalletMain->mapMyCraveNodes)
     {
-        CAdrenalineNodeConfig c = adrenaline.second;
+        CCraveNodeConfig c = crave.second;
 	std::string errorMessage;
         bool result = activeMasternode.StopMasterNode(c.sAddress, c.sMasternodePrivKey, errorMessage);
 	if(result)

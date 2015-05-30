@@ -34,7 +34,7 @@ class uint256;
 #define MASTERNODE_SYNC_IN_PROCESS             8
 #define MASTERNODE_REMOTELY_ENABLED            9
 
-#define MASTERNODE_MIN_CONFIRMATIONS           15
+#define MASTERNODE_MIN_CONFIRMATIONS           5
 #define MASTERNODE_MIN_DSEEP_SECONDS           (30*60)
 #define MASTERNODE_MIN_DSEE_SECONDS            (5*60)
 #define MASTERNODE_PING_SECONDS                (1*60)
@@ -61,7 +61,7 @@ int CountMasternodesAboveProtocol(int protocolVersion);
 void ProcessMessageMasternode(CNode* pfrom, std::string& strCommand, CDataStream& vRecv);
 
 //
-// The Masternode Class. For managing the darksend process. It contains the input of the 1000DRK, signature to prove
+// The Masternode Class. For managing the darksend process. It contains the input of the 1000SKB, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
 class CMasterNode
@@ -219,8 +219,8 @@ private:
 public:
 
     CMasternodePayments() {
-        strMainPubKey = "0430a870a5a1e8a85b816c64cb86d6aa4955134efe72c458246fb84cfd5221c111ee84dfc0dbf160d339415044259519eae2840ab3ffe86368f3f9a93ec22e3f4d";
-        strTestPubKey = "0430a870a5a1e8a85b816c64cb86d6aa4955134efe72c458246fb84cfd5221c111ee84dfc0dbf160d339415044259519eae2840ab3ffe86368f3f9a93ec22e3f4d";
+        strMainPubKey = "044fd667867536bd0605bcad1934cf39871d989e7535f910947f812158d0f6bfae6b7845ce6f3907a351777e417be38d2aaefd1cb3045f874a11ae60b2be16da96";
+        strTestPubKey = "044fd667867536bd0605bcad1934cf39871d989e7535f910947f812158d0f6bfae6b7845ce6f3907a351777e417be38d2aaefd1cb3045f874a11ae60b2be16da96";
         enabled = false;
     }
 
